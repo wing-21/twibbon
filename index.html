@@ -161,8 +161,11 @@
         }
 
         function prepareDownloadLink() {
-          dlLink.setAttribute('download', input.files[0].name.replace(/\.\w+$/, '-framed.png'));
-          dlLink.href = canvas.toDataURL();
+          canvas.toBlob(function (blob) {
+            const url = URL.createObjectURL(blob);
+            dlLink.href = url;
+            dlLink.download = input.files[0].name.replace(/\.\w+$/, '-framed.png');
+          });
         }
 
         document.getElementById('up').addEventListener('click', function () {
@@ -201,6 +204,17 @@
             lastTouchEnd = now;
           },
           false
+        );
+
+        // Prevent image zoom on mobile
+        document.addEventListener(
+          'touchmove',
+          function (event) {
+            if (event.scale !== 1) {
+              event.preventDefault();
+            }
+          },
+          { passive: false }
         );
       </script>
     </article>
