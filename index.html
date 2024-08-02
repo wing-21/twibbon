@@ -38,6 +38,8 @@
         margin: 10px 0;
         background: #eee;
         width: 100%;
+        max-width: 500px;
+        height: auto;
       }
 
       .wrapper {
@@ -113,6 +115,8 @@
         let imgX = 0,
           imgY = 0,
           imgScale = 1;
+        let imgWidth = 0,
+          imgHeight = 0;
         const moveAmount = 10;
 
         twibbon.src = './assets/twibbon.png';
@@ -133,14 +137,26 @@
           imgX = 0;
           imgY = 0;
           imgScale = 1;
+          adjustImageSize();
           drawCanvas();
           dlLink.hidden = false;
           prepareDownloadLink();
         };
 
+        function adjustImageSize() {
+          const aspectRatio = img.width / img.height;
+          if (img.width > img.height) {
+            imgWidth = 500;
+            imgHeight = 500 / aspectRatio;
+          } else {
+            imgHeight = 500;
+            imgWidth = 500 * aspectRatio;
+          }
+        }
+
         function drawCanvas() {
           context.clearRect(0, 0, 500, 500);
-          context.drawImage(img, imgX, imgY, img.width * imgScale, img.height * imgScale);
+          context.drawImage(img, imgX, imgY, imgWidth * imgScale, imgHeight * imgScale);
           context.drawImage(twibbon, 0, 0, 500, 500);
         }
 
@@ -172,6 +188,20 @@
           drawCanvas();
           prepareDownloadLink();
         });
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener(
+          'touchend',
+          function (event) {
+            const now = new Date().getTime();
+            if (now - lastTouchEnd <= 300) {
+              event.preventDefault();
+            }
+            lastTouchEnd = now;
+          },
+          false
+        );
       </script>
     </article>
     <footer>
