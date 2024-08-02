@@ -63,6 +63,18 @@
       .action[href=''] {
         display: none;
       }
+
+      .control-buttons {
+        display: flex;
+        justify-content: space-between;
+        width: 200px;
+        margin: 10px auto;
+      }
+
+      .control-buttons button {
+        padding: 10px;
+        font-size: 16px;
+      }
     </style>
     <script type="text/javascript" src="js/main.js"></script>
   </head>
@@ -78,6 +90,12 @@
           <input type="file" id="input-file" accept="image/*" />
           Pilih Gambar
         </label>
+        <div class="control-buttons">
+          <button id="up">⬆️</button>
+          <button id="left">⬅️</button>
+          <button id="down">⬇️</button>
+          <button id="right">➡️</button>
+        </div>
         <a download="twibbon-by-ferryayunda.png" class="action" id="download-link" href="">Simpan Twibbon</a>
         <img src="./assets/placeholder.png" alt="" width="1" id="placeholder" hidden />
       </div>
@@ -95,9 +113,7 @@
         let imgX = 0,
           imgY = 0,
           imgScale = 1;
-        let isDragging = false,
-          startX,
-          startY;
+        const moveAmount = 10;
 
         twibbon.src = './assets/twibbon.png';
         dlLink.hidden = true;
@@ -122,83 +138,6 @@
           prepareDownloadLink();
         };
 
-        canvas.addEventListener('mousedown', function (e) {
-          isDragging = true;
-          startX = e.offsetX - imgX;
-          startY = e.offsetY - imgY;
-        });
-
-        canvas.addEventListener('mousemove', function (e) {
-          if (isDragging) {
-            imgX = e.offsetX - startX;
-            imgY = e.offsetY - startY;
-            drawCanvas();
-            prepareDownloadLink();
-          }
-        });
-
-        canvas.addEventListener('mouseup', function () {
-          isDragging = false;
-        });
-
-        // Touch events for mobile devices
-        canvas.addEventListener('touchstart', function (e) {
-          if (e.touches.length === 1) {
-            const touch = e.touches[0];
-            isDragging = true;
-            startX = touch.clientX - imgX;
-            startY = touch.clientY - imgY;
-          }
-        });
-
-        canvas.addEventListener('touchmove', function (e) {
-          if (isDragging && e.touches.length === 1) {
-            const touch = e.touches[0];
-            imgX = touch.clientX - startX;
-            imgY = touch.clientY - startY;
-            drawCanvas();
-            prepareDownloadLink();
-          }
-        });
-
-        canvas.addEventListener('touchend', function () {
-          isDragging = false;
-        });
-
-        canvas.addEventListener('wheel', function (e) {
-          e.preventDefault();
-          const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
-          imgScale *= scaleAmount;
-          drawCanvas();
-          prepareDownloadLink();
-        });
-
-        // Pinch to zoom for mobile devices
-        let initialDistance = null;
-        canvas.addEventListener('touchmove', function (e) {
-          if (e.touches.length === 2) {
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            const currentDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
-
-            if (initialDistance === null) {
-              initialDistance = currentDistance;
-            } else {
-              const scaleAmount = currentDistance / initialDistance;
-              imgScale *= scaleAmount;
-              initialDistance = currentDistance;
-              drawCanvas();
-              prepareDownloadLink();
-            }
-          }
-        });
-
-        canvas.addEventListener('touchend', function (e) {
-          if (e.touches.length < 2) {
-            initialDistance = null;
-          }
-        });
-
         function drawCanvas() {
           context.clearRect(0, 0, 500, 500);
           context.drawImage(img, imgX, imgY, img.width * imgScale, img.height * imgScale);
@@ -209,6 +148,30 @@
           dlLink.setAttribute('download', input.files[0].name.replace(/\.\w+$/, '-framed.png'));
           dlLink.href = canvas.toDataURL();
         }
+
+        document.getElementById('up').addEventListener('click', function () {
+          imgY -= moveAmount;
+          drawCanvas();
+          prepareDownloadLink();
+        });
+
+        document.getElementById('down').addEventListener('click', function () {
+          imgY += moveAmount;
+          drawCanvas();
+          prepareDownloadLink();
+        });
+
+        document.getElementById('left').addEventListener('click', function () {
+          imgX -= moveAmount;
+          drawCanvas();
+          prepareDownloadLink();
+        });
+
+        document.getElementById('right').addEventListener('click', function () {
+          imgX += moveAmount;
+          drawCanvas();
+          prepareDownloadLink();
+        });
       </script>
     </article>
     <footer>
