@@ -141,12 +141,62 @@
           isDragging = false;
         });
 
+        // Touch events for mobile devices
+        canvas.addEventListener('touchstart', function (e) {
+          if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            isDragging = true;
+            startX = touch.clientX - imgX;
+            startY = touch.clientY - imgY;
+          }
+        });
+
+        canvas.addEventListener('touchmove', function (e) {
+          if (isDragging && e.touches.length === 1) {
+            const touch = e.touches[0];
+            imgX = touch.clientX - startX;
+            imgY = touch.clientY - startY;
+            drawCanvas();
+            prepareDownloadLink();
+          }
+        });
+
+        canvas.addEventListener('touchend', function () {
+          isDragging = false;
+        });
+
         canvas.addEventListener('wheel', function (e) {
           e.preventDefault();
           const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
           imgScale *= scaleAmount;
           drawCanvas();
           prepareDownloadLink();
+        });
+
+        // Pinch to zoom for mobile devices
+        let initialDistance = null;
+        canvas.addEventListener('touchmove', function (e) {
+          if (e.touches.length === 2) {
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const currentDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+
+            if (initialDistance === null) {
+              initialDistance = currentDistance;
+            } else {
+              const scaleAmount = currentDistance / initialDistance;
+              imgScale *= scaleAmount;
+              initialDistance = currentDistance;
+              drawCanvas();
+              prepareDownloadLink();
+            }
+          }
+        });
+
+        canvas.addEventListener('touchend', function (e) {
+          if (e.touches.length < 2) {
+            initialDistance = null;
+          }
         });
 
         function drawCanvas() {
