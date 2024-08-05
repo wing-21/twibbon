@@ -98,119 +98,131 @@
 
       <p>Ket : Sesuaiakan posisi foto dengan mengklik tombol panah</p>
 
-      <script type="text/javascript">
-        const input = document.getElementById('input-file');
-        const canvas = document.getElementById('preview');
-        const context = canvas.getContext('2d');
-        const ph = document.getElementById('placeholder');
-        const dlLink = document.getElementById('download-link');
-        const twibbon = new Image();
-        let img = new Image();
-        let imgX = 0,
-          imgY = 0,
-          imgScale = 1;
-        let imgWidth = 0,
-          imgHeight = 0;
-        const moveAmount = 10;
+<script type="text/javascript">
+  const input = document.getElementById('input-file');
+  const canvas = document.getElementById('preview');
+  const context = canvas.getContext('2d');
+  const ph = document.getElementById('placeholder');
+  const dlLink = document.getElementById('download-link');
+  const twibbon = new Image();
+  let img = new Image();
+  let imgX = 0,
+    imgY = 0,
+    imgScale = 1;
+  let imgWidth = 0,
+    imgHeight = 0;
+  const moveAmount = 10;
+  const canvasSize = 500;
+  const hdCanvasSize = 1000; // Ukuran HD dua kali lipat dari kanvas asli
+  const scaleFactor = hdCanvasSize / canvasSize; // Faktor skala untuk HD
 
-        twibbon.src = './assets/twibbon.png';
-        dlLink.hidden = true;
+  twibbon.src = './assets/twibbon.png';
+  dlLink.hidden = true;
 
-        twibbon.onload = function () {
-          drawCanvas();
-        };
+  twibbon.onload = function () {
+    drawCanvas();
+  };
 
-        input.addEventListener('change', function () {
-          const file = input.files[0];
-          if (file) {
-            img.src = URL.createObjectURL(file);
-          }
-        });
+  input.addEventListener('change', function () {
+    const file = input.files[0];
+    if (file) {
+      img.src = URL.createObjectURL(file);
+    }
+  });
 
-        img.onload = function () {
-          imgX = 0;
-          imgY = 0;
-          imgScale = 1;
-          adjustImageSize();
-          drawCanvas();
-          dlLink.hidden = false;
-          prepareDownloadLink();
-        };
+  img.onload = function () {
+    imgX = 0;
+    imgY = 0;
+    imgScale = 1;
+    adjustImageSize();
+    drawCanvas();
+    dlLink.hidden = false;
+    prepareDownloadLink();
+  };
 
-        function adjustImageSize() {
-          const aspectRatio = img.width / img.height;
-          if (img.width > img.height) {
-            imgWidth = 500;
-            imgHeight = 500 / aspectRatio;
-          } else {
-            imgHeight = 500;
-            imgWidth = 500 * aspectRatio;
-          }
-        }
+  function adjustImageSize() {
+    const aspectRatio = img.width / img.height;
+    if (img.width > img.height) {
+      imgWidth = canvasSize;
+      imgHeight = canvasSize / aspectRatio;
+    } else {
+      imgHeight = canvasSize;
+      imgWidth = canvasSize * aspectRatio;
+    }
+  }
 
-        function drawCanvas() {
-          context.clearRect(0, 0, 500, 500);
-          context.drawImage(img, imgX, imgY, imgWidth * imgScale, imgHeight * imgScale);
-          context.drawImage(twibbon, 0, 0, 500, 500);
-        }
+  function drawCanvas() {
+    context.clearRect(0, 0, canvasSize, canvasSize);
+    context.drawImage(img, imgX, imgY, imgWidth * imgScale, imgHeight * imgScale);
+    context.drawImage(twibbon, 0, 0, canvasSize, canvasSize);
+  }
 
-        function prepareDownloadLink() {
-          canvas.toBlob(function (blob) {
-            const url = URL.createObjectURL(blob);
-            dlLink.href = url;
-            dlLink.download = input.files[0].name.replace(/\.\w+$/, '-framed.png');
-          });
-        }
+  function prepareDownloadLink() {
+    const hdCanvas = document.createElement('canvas');
+    hdCanvas.width = hdCanvasSize;
+    hdCanvas.height = hdCanvasSize;
+    const hdContext = hdCanvas.getContext('2d');
 
-        document.getElementById('up').addEventListener('click', function () {
-          imgY -= moveAmount;
-          drawCanvas();
-          prepareDownloadLink();
-        });
+    hdContext.drawImage(img, imgX * scaleFactor, imgY * scaleFactor, imgWidth * imgScale * scaleFactor, imgHeight * imgScale * scaleFactor);
+    hdContext.drawImage(twibbon, 0, 0, hdCanvasSize, hdCanvasSize);
 
-        document.getElementById('down').addEventListener('click', function () {
-          imgY += moveAmount;
-          drawCanvas();
-          prepareDownloadLink();
-        });
+    hdCanvas.toBlob(function (blob) {
+      const url = URL.createObjectURL(blob);
+      dlLink.href = url;
+      dlLink.download = input.files[0].name.replace(/\.\w+$/, '-framed-hd.png');
+    });
+  }
 
-        document.getElementById('left').addEventListener('click', function () {
-          imgX -= moveAmount;
-          drawCanvas();
-          prepareDownloadLink();
-        });
+  document.getElementById('up').addEventListener('click', function () {
+    imgY -= moveAmount;
+    drawCanvas();
+    prepareDownloadLink();
+  });
 
-        document.getElementById('right').addEventListener('click', function () {
-          imgX += moveAmount;
-          drawCanvas();
-          prepareDownloadLink();
-        });
+  document.getElementById('down').addEventListener('click', function () {
+    imgY += moveAmount;
+    drawCanvas();
+    prepareDownloadLink();
+  });
 
-        // Prevent zoom on double tap
-        let lastTouchEnd = 0;
-        document.addEventListener(
-          'touchend',
-          function (event) {
-            const now = new Date().getTime();
-            if (now - lastTouchEnd <= 300) {
-              event.preventDefault();
-            }
-            lastTouchEnd = now;
-          },
-          false
-        );
+  document.getElementById('left').addEventListener('click', function () {
+    imgX -= moveAmount;
+    drawCanvas();
+    prepareDownloadLink();
+  });
 
-        // Prevent image zoom on mobile
-        document.addEventListener(
-          'touchmove',
-          function (event) {
-            if (event.scale !== 1) {
-              event.preventDefault();
-            }
-          },
-          { passive: false }
-        );
-      </script>
+  document.getElementById('right').addEventListener('click', function () {
+    imgX += moveAmount;
+    drawCanvas();
+    prepareDownloadLink();
+  });
+
+  // Prevent zoom on double tap
+  let lastTouchEnd = 0;
+  document.addEventListener(
+    'touchend',
+    function (event) {
+      const now = new Date().getTime();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    },
+    false
+  );
+
+  // Prevent image zoom on mobile
+  document.addEventListener(
+    'touchmove',
+    function (event) {
+      if (event.scale !== 1) {
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+</script>
+
     </article>
     <footer>
       <p><a target="_blank" rel="noopener" href="https://www.webmeid.com">Copyright © 2024 Webmeid.</a></p>
